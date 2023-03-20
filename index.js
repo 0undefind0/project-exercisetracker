@@ -5,10 +5,17 @@ require('dotenv').config()
 
 app.use(cors())
 app.use(express.static('public'))
+app.use(express.urlencoded({extended:false}))
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
+app.post('/api/users', (req,res) => {
+  const username = req.body.username;
+  console.log(username)
+  res.redirect('/')
+})
 
 
 
