@@ -1,13 +1,24 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
-require('dotenv').config()
-
-
+const mongoose = require('mongoose')
+require('dotenv').config() // load all env variable
 
 app.use(cors())
 app.use(express.static('public'))
 app.use(express.urlencoded({extended: false}))
+
+
+// * DATABASE
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log('MongoDB connection established')
+  })
+  .catch((error) => {
+    console.error('Error connecting to MongoDB: ', error)
+  })
+
+
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
@@ -37,7 +48,7 @@ app.post('/api/users', (req, res) => {
     // TODO: save the new username to database with UUID
   }
 
-  console.log(`"${username}" VALID=${isUserValid}`);
+  console.log(`"${username}" \t: isValidUsername:${isValidUsername}`)
   res.redirect('/')
 })
 
@@ -50,6 +61,10 @@ app.post('/api/users/:_id/exercises', (req, res) => {
 
 })
 
+const generateUserID = () => {
+  const timestamp = Date.now().toString(36); // Convert current timestamp to base-36 string
+  const randomString = Math.random().toString(36).substring(2,8)
+}
 
 
 const listener = app.listen(process.env.PORT || 3000, () => {
