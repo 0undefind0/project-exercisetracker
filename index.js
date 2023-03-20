@@ -42,9 +42,9 @@ app.post('/api/users', (req, res) => {
   // TODO: validate username
   // Username should start with a letter or number, followed by any combination of letters, numbers, underscores, or hyphens, and is between 4 and 16 characters long
   const usernamePattern = new RegExp('^[a-zA-Z0-9_\\-]{4,16}$')
-  const isUserValid = usernamePattern.test(username)
+  const isValidUsername = usernamePattern.test(username)
 
-  if(isUserValid) {
+  if(isValidUsername) {
     // TODO: save the new username to database with UUID
   }
 
