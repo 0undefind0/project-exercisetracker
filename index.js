@@ -13,6 +13,16 @@ app.get('/', (req, res) => {
 
 app.post('/api/users', (req,res) => {
   const username = req.body.username;
+
+  // TODO: validate username
+  // Usernames should start with a letter or number, followed by any combination of letters, numbers, underscores, or hyphens, and is between 4 and 16 characters long.
+  const usernamePattern = new RegExp('^[a-zA-Z0-9_\\-]{4,16}$')
+  const isValidUsername = usernamePattern.test(username)
+
+  if (isValidUsername) {
+    
+  }
+
   console.log(username)
   res.redirect('/')
 })
