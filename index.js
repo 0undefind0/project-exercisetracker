@@ -52,8 +52,6 @@ app.post('/api/users', (req, res) => {
   const usernamePattern = new RegExp('^[a-zA-Z0-9_\\-]{4,16}$')
   const isValidUsername = usernamePattern.test(username)
 
-  console.log(`"${username}" \t: isValidUsername:${isValidUsername}`)
-
   if(isValidUsername) {
     // TODO: save the new username to database with UUID
     // ! WTF is this?!!? my brain holy cant comprehend this shhhht
