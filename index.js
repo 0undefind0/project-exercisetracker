@@ -97,9 +97,7 @@ app.post('/api/users', (req, res) => {
     
   } else {
     res.redirect('/')
-
   }
-  
 })
 
 
