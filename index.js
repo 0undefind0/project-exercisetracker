@@ -111,11 +111,6 @@ app.post('/api/users/:_id/exercises', (req, res) => {
 
 })
 
-const generateUserID = () => {
-  const timestamp = Date.now().toString(36); // Convert current timestamp to base-36 string
-  const randomString = Math.random().toString(36).substring(2,8)
-}
-
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log('Your app is listening on port ' + listener.address().port)
