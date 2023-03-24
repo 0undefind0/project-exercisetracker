@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const cors = require('cors')
 const mongoose = require('mongoose')
+const shortid = require('shortid')
 require('dotenv').config() // load all env variable
 
 app.use(cors())
@@ -16,7 +17,14 @@ mongoose.connect(process.env.MONGO_URI)
   })
   .catch((error) => {
     console.error('Error connecting to MongoDB: ', error)
-  })
+  });
+
+const userSchema = new mongoose.Schema({
+  _id: String,
+  username: String,
+})
+
+const userModel = mongoose.model('User', userSchema);
 
 
 
@@ -44,12 +52,54 @@ app.post('/api/users', (req, res) => {
   const usernamePattern = new RegExp('^[a-zA-Z0-9_\\-]{4,16}$')
   const isValidUsername = usernamePattern.test(username)
 
+  console.log(`"${username}" \t: isValidUsername:${isValidUsername}`)
+
   if(isValidUsername) {
     // TODO: save the new username to database with UUID
-  }
+    // ! WTF is this?!!? my brain holy cant comprehend this shhhht
+    let foundUser = userModel.findOne({"username": username})
+    foundUser.exec()
+      .then( user => {
+        if (user) {
+          const existingUser = {
+            _id: user.id,
+            "username": user.username,
+          }
+          res.json(existingUser);
 
-  console.log(`"${username}" \t: isValidUsername:${isValidUsername}`)
-  res.redirect('/')
+        } else {
+          // if user not found, then create new user
+          const newUser = new userModel({
+            _id: shortid.generate(),
+            "username": username,
+          })
+
+          newUser.save()
+            .then(user => {
+              const createdUser = {
+                _id: user.id,
+                "username": user.username,
+              }
+              res.json(createdUser);
+            })
+            .catch( error => {
+              console.log(error);
+              res.status(500);
+            })
+        }
+
+      })
+      .catch( error => {
+        console.log(error);
+        res.status(500);
+
+      });
+    
+  } else {
+    res.redirect('/')
+
+  }
+  
 })
 
 
