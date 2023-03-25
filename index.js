@@ -56,7 +56,7 @@ app.post('/api/users', (req, res) => {
   const isValidUsername = usernamePattern.test(username)
 
   if(isValidUsername) {
-    // TODO: save the new username to database with UUID
+    // save the new username to database with UUID
     // ! WTF is this?!!? my brain holy cant comprehend this shhhht
     let foundUser = userModel.findOne({"username": username})
     foundUser.exec()
