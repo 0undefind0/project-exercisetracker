@@ -23,8 +23,22 @@ mongoose.connect(process.env.MONGO_URI)
   });
 
 const userSchema = new mongoose.Schema({
-  _id: String,
-  username: String,
+  _id: {
+    type: String, 
+    default: shortid.generate
+  },
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  exercises: [
+    {
+      description: String,
+      duration: Number,
+      date: Date,
+    }
+  ]
 })
 
 const userModel = mongoose.model('User', userSchema);
