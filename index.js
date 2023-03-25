@@ -3,11 +3,14 @@ const app = express()
 const cors = require('cors')
 const mongoose = require('mongoose')
 const shortid = require('shortid')
+const favicon = require('serve-favicon')
+const path = require('path')
 require('dotenv').config() // load all env variable
 
 app.use(cors())
 app.use(express.static('public'))
 app.use(express.urlencoded({extended: false}))
+app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 
 
 // * DATABASE
