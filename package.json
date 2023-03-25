@@ -12,6 +12,7 @@
 		"express": "^4.16.4",
 		"mongoose": "^7.0.2",
 		"nodemon": "^2.0.21",
+		"serve-favicon": "^2.5.0",
 		"shortid": "^2.2.16"
 	},
 	"repository": {
