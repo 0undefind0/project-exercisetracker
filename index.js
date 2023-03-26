@@ -50,16 +50,48 @@ app.get('/', (req, res) => {
 });
 
 
-/** GET user's exercise log
- * 
+/**
+ * Get a list of all users
+ * GET request to /api/users to get a list of all users.
+ * @route GET /api/users
+ * @returns array of user objects containing _id and username properties
  */
-app.get('/api/users/:_id/logs?[from][&to][&limit]', (req, res) => {
+app.get('/api/users', (req, res) => {
+  const allUsers = userModel.find({})
+  allUsers.exec()
+    .then( users => {
+      const allUsers = users.map( user => {
+        return {
+          _id: user.id,
+          username: user.username,
+        }
+      })
+      res.json(allUsers);
+    })
+    .catch( error => {
+      console.log(error);
+      res.status(500);
+    })
+  
+})
 
+
+/** 
+ * GET user's exercise log
+ * GET request to /api/users/:_id/logs to retrieve a full exercise log of any user.
+ * @returns a user object with a count property representing the number of exercises that belong to that user.
+ */
+app.get('/api/users/:_id/logs', (req, res) => {
+  const userId = req.params._id.trim();
+  const from = req.query.from;
 })
 
 
 /** Create new user
- * @input username
+ * POST to /api/users with form data username to create a new user.
+ * @route POST /api/users
+ * @reqcontent username
+ * @returns user object with username and _id properties
  */
 app.post('/api/users', (req, res) => {
   const username = req.body.username.trim();
@@ -82,7 +114,8 @@ app.post('/api/users', (req, res) => {
           }
           res.json(existingUser);
 
-        } else {
+        } 
+        else {
           // if user not found, then create new user
           const newUser = new userModel({
             _id: shortid.generate(),
@@ -110,15 +143,19 @@ app.post('/api/users', (req, res) => {
 
       });
     
-  } else {
+  } 
+  else {
     res.redirect('/')
   }
 })
 
 
 /** Create new exercise for the user
+ * POST to /api/users/:_id/exercises with form data description, duration, and optionally date. If no date is supplied, the current date will be used.
  * @route POST /api/users/:_id/exercises
- * TODO: 
+ * @param _id user's id
+ * @reqcontent _id, description, duration, [date]
+ * @returns user object with username, _id, description, duration, and date properties
  */
 app.post('/api/users/:_id/exercises', (req, res) => {
   const userId = req.params._id.trim();
@@ -169,9 +206,14 @@ app.post('/api/users/:_id/exercises', (req, res) => {
             res.status(500);
           })
 
-      } else {
+      } 
+      else {
         res.redirect('/')
       }
+    })
+    .catch( error => {
+      console.log(error);
+      res.status(500);
     })
 })
 
