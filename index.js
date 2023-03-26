@@ -62,7 +62,7 @@ app.get('/api/users/:_id/logs?[from][&to][&limit]', (req, res) => {
  * @input username
  */
 app.post('/api/users', (req, res) => {
-  const username = req.body.username;
+  const username = req.body.username.trim();
 
   // TODO: validate username
   // Username should start with a letter or number, followed by any combination of letters, numbers, underscores, or hyphens, and is between 4 and 16 characters long
@@ -118,10 +118,61 @@ app.post('/api/users', (req, res) => {
 
 /** Create new exercise for the user
  * @route POST /api/users/:_id/exercises
- * 
+ * TODO: 
  */
 app.post('/api/users/:_id/exercises', (req, res) => {
+  const userId = req.params._id.trim();
+  let description = req.body.description.trim();
+  let duration = req.body.duration.trim();
+  let date = req.body.date.trim();
 
+  // Validate the date
+  const dateObject = new Date(date);
+  if (date === "") {
+    // if date is empty, then set it to today
+    date = new Date().toDateString();
+  }
+  else if (!isNaN(dateObject.getTime())) {
+    // date is valid after parsing
+    date = dateObject.toDateString();
+  }
+  else {
+    // not a date
+    res.redirect(409, '/') // 409 Conflict
+  }
+
+  const foundUser = userModel.findById(userId)
+  foundUser.exec()
+    .then( user => {
+      if (user) {
+        // if user found, then create new exercise
+        const newExercise = {
+          description: description,
+          duration: duration,
+          date: date,
+        }
+
+        user.exercises.push(newExercise)
+        user.save()
+          .then( user => {
+            const createdExercise = {
+              _id: user.id,
+              username: user.username,
+              description: newExercise.description,
+              duration: newExercise.duration,
+              date: newExercise.date,
+            }
+            res.json(createdExercise);
+          })
+          .catch( error => {
+            console.log(error);
+            res.status(500);
+          })
+
+      } else {
+        res.redirect('/')
+      }
+    })
 })
 
 
