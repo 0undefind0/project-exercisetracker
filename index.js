@@ -240,7 +240,6 @@ app.post('/api/users', (req, res) => {
  * @param _id user's id
  * @reqcontent _id, description, duration, [date]
  * @returns user object with username, _id, description, duration, and date properties
- * ! The response returned from POST /api/users/:_id/exercises will be the user object with the exercise fields added.
  */
 app.post('/api/users/:_id/exercises', (req, res) => {
   const userId = req.params._id.trim();
