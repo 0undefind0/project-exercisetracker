@@ -141,7 +141,7 @@ app.get('/api/users/:_id/logs', (req, res) => {
   ])
     .then(doc => {
       doc = doc[0];
-      doc.count = doc.exercises.length;
+      doc.count = doc.log.length;
 
       if (req.query.from) {
         doc.from = from.toDateString();
@@ -156,7 +156,7 @@ app.get('/api/users/:_id/logs', (req, res) => {
       }
       
       // format the date to yyyy-mm-dd
-      doc.exercises = doc.exercises.map( exercise => {
+      doc.log = doc.log.map( exercise => {
         exercise.date = exercise.date.toDateString();
         return exercise;
       })
