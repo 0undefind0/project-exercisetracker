@@ -243,9 +243,9 @@ app.post('/api/users', (req, res) => {
  */
 app.post('/api/users/:_id/exercises', (req, res) => {
   const userId = req.params._id.trim();
-  let description = req.body.description.trim();
-  let duration = req.body.duration.trim();
-  let date = req.body.date.trim();
+  let description = req.body.description?.trim() ?? '';
+  let duration = req.body.duration?.trim() ?? '';
+  let date = req.body.date?.trim() ?? '';
 
   // Validate the date
   const dateObject = new Date(date);
