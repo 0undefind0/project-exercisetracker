@@ -135,7 +135,7 @@ app.get('/api/users/:_id/logs', (req, res) => {
     { $group: {
       _id: '$_id', 
       username: {$first: '$username'}, 
-      exercises: {$push: {description: '$exercises.description', date: '$exercises.date', duration: '$exercises.duration'}}
+      log: {$push: {description: '$exercises.description', date: '$exercises.date', duration: '$exercises.duration'}}
       } 
     }, // group exercises back into array by user
   ])
