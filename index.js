@@ -198,7 +198,7 @@ app.post('/api/users', (req, res) => {
 
   } 
   else {
-    res.redirect('/')
+    res.status(400); // Invalid username
   }
 })
 
@@ -228,7 +228,7 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   }
   else {
     // not a date
-    res.redirect(409, '/') // 409 Conflict
+    res.status(409) // 409 Conflict
   }
 
   const foundUser = userModel.findById(userId)
@@ -261,7 +261,7 @@ app.post('/api/users/:_id/exercises', (req, res) => {
 
       } 
       else {
-        res.redirect('/')
+        res.status(404); // user not found
       }
     })
     .catch( error => {
