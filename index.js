@@ -124,11 +124,22 @@ app.get('/api/users/:_id/logs', (req, res) => {
     { $unwind: '$exercises'}, // unwind the exercises array
     { $match: {'exercises.date' : { $gte: from, $lte: to}} }, // filter exercises based on date range
     { $limit: Number(limit) }, // limit the number of exercises
-    { $group: {_id: '$_id', username: {$first: '$username'}, exercises: {$push: '$exercises'}} }, // group exercises back into array by user
+    { $group: {
+      _id: '$_id', 
+      username: {$first: '$username'}, 
+      exercises: {$push: {description: '$exercises.description', date: '$exercises.date', duration: '$exercises.duration'}}
+      } 
+    }, // group exercises back into array by user
   ])
     .then(doc => {
       doc = doc[0];
       doc.count = doc.exercises.length;
+      
+      // format the date to yyyy-mm-dd
+      doc.exercises = doc.exercises.map( exercise => {
+        exercise.date = exercise.date.toDateString();
+        return exercise;
+      })
 
       res.json(doc);
     })
