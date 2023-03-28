@@ -176,8 +176,6 @@ app.get('/api/users/:_id/logs', (req, res) => {
  * @route POST /api/users
  * @reqcontent username
  * @returns user object with username and _id properties
- * ! You can POST to /api/users with form data username to create a new user.
- * ! The returned response from POST /api/users with form data username will be an object with username and _id properties.
  */
 app.post('/api/users', (req, res) => {
   const username = req.body.username.trim();
@@ -242,7 +240,6 @@ app.post('/api/users', (req, res) => {
  * @param _id user's id
  * @reqcontent _id, description, duration, [date]
  * @returns user object with username, _id, description, duration, and date properties
- * ! You can POST to /api/users/:_id/exercises with form data description, duration, and optionally date. If no date is supplied, the current date will be used.
  * ! The response returned from POST /api/users/:_id/exercises will be the user object with the exercise fields added.
  */
 app.post('/api/users/:_id/exercises', (req, res) => {
@@ -284,7 +281,7 @@ app.post('/api/users/:_id/exercises', (req, res) => {
               _id: user.id,
               username: user.username,
               description: newExercise.description,
-              duration: newExercise.duration,
+              duration: Number(newExercise.duration),
               date: newExercise.date,
             }
             res.json(createdExercise);
