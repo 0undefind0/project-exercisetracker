@@ -6,10 +6,12 @@ const shortid = require('shortid')
 const favicon = require('serve-favicon')
 const path = require('path')
 const moment = require('moment-timezone')
+const { query, validationResult } = require('express-validator')
 require('dotenv').config() // load all env variable
 
 app.use(cors())
 app.use(express.static('public'))
+app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 
@@ -83,85 +85,71 @@ app.get('/api/users', (req, res) => {
  * @route GET /api/users/:_id/logs?[from][&to][&limit]
  * @params *_id, ?from, ?to, ?limit
  * @returns a user object with a count property representing the number of exercises that belong to that user.
- * TODO: add from, to and limit parameters to a GET /api/users/:_id/logs request to retrieve part of the log of any user. from and to are dates in yyyy-mm-dd format. limit is an integer of how many logs to send back.
- * ! You can add from, to and limit parameters to a GET /api/users/:_id/logs request to retrieve part of the log of any user. from and to are dates in yyyy-mm-dd format. limit is an integer of how many logs to send back.
  */
-app.get('/api/users/:_id/logs', (req, res) => {
-  const userId = req.params._id.trim();
-  let {from} = req.query;
-  let {to} = req.query;
-  let {limit} = req.query;
+app.get('/api/users/:_id/logs', [
 
-  if (from) {
-    from = from.trim() ? new Date(from.trim()) : new Date("0"); // defaults to 1970-01-01 beginning of time
-  }
-  else {
-    from = new Date("0");
-  }
+  // Exercise validation
 
-  if (to) {
-    to = to.trim() ? new Date(to.trim()) : new Date(); // defaults to current date
-  }
-  else {
-    to = new Date();
-  }
+  query('from')
+    .optional() // make the 'to' parameter optional
+    .trim()
+    .isISO8601()
+    .withMessage('Invalid date')
+    .isAfter(new Date(0).toJSON())
+    .isBefore(new Date('2999-12-31').toJSON())
+    .withMessage("Invalid Date"),
 
-  if (limit) {
-    limit = limit.trim() ? parseInt(limit.trim()) : Number.MAX_SAFE_INTEGER; // defaults to no limit
-  }
-  else {
-    limit = Number.MAX_SAFE_INTEGER;
-  }
+  query('to')
+    .optional() // make the 'to' parameter optional
+    .trim()
+    .isISO8601()
+    .withMessage('Invalid date')
+    .isAfter(new Date(0).toJSON())
+    .isBefore(new Date('2999-12-31').toJSON())
+    .withMessage("Invalid Date"),
 
-  // Check if from and to are valid date and from is before to
-  if (from == 'Invalid Date') {
-    res.status(400).json('Invalid date format for from parameter');
-  }
-  else if (to == 'Invalid Date') {
-    res.status(400).json('Invalid date format for to parameter');
-  }
+  query('limit')
+    .optional() // make the 'to' parameter optional
+    .trim()
+    .isNumeric({ no_symbols: true })
+    .withMessage('Invalid Number')
+    .optional({ nullable: true, checkFalsy: true })
 
-  userModel.aggregate([{ $match: { _id: userId }}, // match the document based on the user ID
-    { $unwind: '$exercises'}, // unwind the exercises array
-    { $match: {'exercises.date' : { $gte: from, $lte: to}} }, // filter exercises based on date range
-    { $limit: Number(limit) }, // limit the number of exercises
-    { $group: {
-      _id: '$_id', 
-      username: {$first: '$username'}, 
-      log: {$push: {description: '$exercises.description', date: '$exercises.date', duration: '$exercises.duration'}}
-      } 
-    }, // group exercises back into array by user
-  ])
-    .then(doc => {
-      doc = doc[0];
-      doc.count = doc.log.length;
-
-      if (req.query.from) {
-        doc.from = from.toDateString();
+], (req, res, next) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    errors.array().forEach(e => {
+      if((e.value !== undefined && e.param !== 'username') || e.param === 'username'){
+        // const { param, msg: message, } = errors.array()[0]
+        // return next({ param, message, })
+        console.log(e)
       }
+    })
+  }
 
-      if (req.query.to) {
-        doc.to = to.toDateString();
-      }
+  const { userid, from = new Date(0), to = new Date(), limit = 100 } = req.query;
+  // const { _id } = req.params;
 
-      if (req.query.limit) {
-        doc.limit = limit;
-      }
-      
-      // format the date to yyyy-mm-dd
-      doc.log = doc.log.map( exercise => {
-        exercise.date = exercise.date.toDateString();
-        return exercise;
+  userModel.aggregate([{ $match: { _id: req.params._id }},
+      { $unwind: '$exercises'},
+      { $match: {'exercises.date' : { $gte: new Date(from), $lte: new Date(to)}}},
+      { $limit: Number(limit) }
+    ])
+      .exec()
+      .then(doc => {
+        if (doc.length > 0) {
+          res.json(doc);
+        }
+        else {
+          res.status(400).json('User not found');
+        }
       })
-
-      res.json(doc);
-    })
-    .catch(error => {
-      console.log(error);
-      res.status(500);
-    })
-
-})
+      .catch(error => {
+        console.log(error);
+        res.status(500);
+      })
+  return
+});
 
 
 /** Create new user
@@ -253,14 +241,15 @@ app.post('/api/users/:_id/exercises', (req, res) => {
   else {
     // not a date
     res.status(409) // 409 Conflict
+    return
   }
 
   const foundUser = userModel.findById(userId)
   foundUser.exec()
     .then( user => {
       if (user) {
-        // if user found, then create new exercise
         const newExercise = {
+          // if user found, then create new exercise
           description: description,
           duration: duration,
           date: date,
@@ -281,6 +270,7 @@ app.post('/api/users/:_id/exercises', (req, res) => {
           .catch( error => {
             console.log(error);
             res.status(500);
+            return
           })
 
       } 
