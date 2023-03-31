@@ -128,27 +128,43 @@ app.get('/api/users/:_id/logs', [
   }
 
   const { userid, from = new Date(0), to = new Date(), limit = 100 } = req.query;
-  // const { _id } = req.params;
 
-  userModel.aggregate([{ $match: { _id: req.params._id }},
-      { $unwind: '$exercises'},
-      { $match: {'exercises.date' : { $gte: new Date(from), $lte: new Date(to)}}},
-      { $limit: Number(limit) }
-    ])
-      .exec()
-      .then(doc => {
-        if (doc.length > 0) {
-          res.json(doc);
-        }
-        else {
-          res.status(400).json('User not found');
-        }
-      })
-      .catch(error => {
-        console.log(error);
-        res.status(500);
-      })
-  return
+  userModel.findOne({ _id: req.params._id })
+    .exec()
+    .then( user => {
+      if (user) {
+        user = user.toObject();
+        const { _id, username, exercises } = user;
+        const filteredExercises = exercises.filter( exercise => {
+          const after = new Date(new Date(from).setDate(new Date(from).getDate() - 1)); // 1 day before from date
+          const before = new Date(to)
+          return exercise.date >= after && exercise.date <= before;
+        })
+        const limitedExercises = filteredExercises.slice(0, limit)
+        const log = limitedExercises.map( exercise => {
+          return {
+            description: exercise.description,
+            duration: exercise.duration,
+            date: exercise.date.toDateString(),
+          }
+        })
+
+        res.json({
+          _id,
+          username,
+          count: log.length,
+          log,
+        });
+      }
+      else {
+        res.status(400).json('User not found');
+      }
+    })
+    .catch( error => {
+      console.log(error);
+      res.status(500);
+    });
+    
 });
 
 
